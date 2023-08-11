@@ -1,0 +1,19 @@
+### application config:###
+spring:
+  application:
+    name: ocr-text
+  profiles:
+    active: pd
+  mvc:
+    throw-exception-if-no-handler-found: true
+  servlet:
+    multipart:
+      max-file-size: ${MAX-FILE_SIZE:50}MB
+      max-request-size: ${MAX-FILE_SIZE:50}MB
+
+logging:
+  config: classpath:logback-spring.xml
+
+ocr:
+  data-path: ${ORC-DATAPATH:F:\language}
+  language: ${ORC-LANGUAGE:chi_sim}
