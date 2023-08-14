@@ -5,9 +5,10 @@ import com.jtzj.tools.ocr.model.ResponseState;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITesseract;
+import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,17 +28,17 @@ import java.util.Map;
 @RestController
 @RequestMapping("ocr")
 public class OcrController {
-    @Autowired
-    private ITesseract tesseract;
-
     @SneakyThrows
     @RequestMapping("text")
-    public ApiResponse ocrText(@RequestParam(name = "url") String url) {
+    public ApiResponse ocrText(@RequestParam(name = "url") String url, @RequestParam(value = "lang", required = false) String lang) {
         ApiResponse apiResponse = new ApiResponse();
-        log.debug("接收到文字提取ocr请求{}", url);
+        if (!StringUtils.hasText(lang)) {
+            lang = "chi_sim";
+        }
+        log.debug("get ocr request{},lang={}", url, lang);
 
         try (InputStream inputStream = new ByteArrayInputStream(IOUtils.toByteArray(new URL(url)))) {
-            String text = ocrText(inputStream);
+            String text = ocrText(inputStream, lang);
             apiResponse.setCode(ResponseState.Success);
             Map<String, String> retData = new LinkedHashMap<>(1);
             retData.put("result", text);
@@ -52,11 +53,14 @@ public class OcrController {
 
     @SneakyThrows
     @PostMapping("text/stream")
-    public ApiResponse ocrTextStream(@RequestParam("file") MultipartFile file) {
+    public ApiResponse ocrTextStream(@RequestParam("file") MultipartFile file, @RequestParam(value = "lang", required = false) String lang) {
         ApiResponse apiResponse = new ApiResponse();
-        log.debug("接收到文字提取ocr请求(流模式)");
+        if (!StringUtils.hasText(lang)) {
+            lang = "chi_sim";
+        }
+        log.debug("get ocr request(stream),lang={}", lang);
         try (InputStream inputStream = file.getInputStream()) {
-            String text = ocrText(inputStream);
+            String text = ocrText(inputStream, lang);
             apiResponse.setCode(ResponseState.Success);
             Map<String, String> retData = new LinkedHashMap<>(1);
             retData.put("result", text);
@@ -69,11 +73,14 @@ public class OcrController {
         }
     }
 
-    private String ocrText(InputStream inputStream) throws TesseractException, IOException {
+    private String ocrText(InputStream inputStream, String lang) throws TesseractException, IOException {
         try {
             BufferedImage img = ImageIO.read(inputStream);
-            String result = tesseract.doOCR(img);
-            log.info("扫描文本结果:{}", "成功");
+            ITesseract instance = new Tesseract();
+            //设置使用的语言库类型：chi_sim 中文简体
+            instance.setLanguage(lang);
+            String result = instance.doOCR(img);
+            log.info("ocr result:{}", "sucess");
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);

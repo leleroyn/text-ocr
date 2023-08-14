@@ -13,7 +13,3 @@ spring:
 
 logging:
   config: classpath:logback-spring.xml
-
-ocr:
-  data-path: ${ORC-DATAPATH:F:\language}
-  language: ${ORC-LANGUAGE:chi_sim}
