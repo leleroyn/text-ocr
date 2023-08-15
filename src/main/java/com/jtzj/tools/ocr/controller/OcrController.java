@@ -80,7 +80,7 @@ public class OcrController {
             //设置使用的语言库类型：chi_sim 中文简体
             instance.setLanguage(lang);
             String result = instance.doOCR(img);
-            log.info("ocr result:{}", "sucess");
+            log.info("ocr result:{}", "success");
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
